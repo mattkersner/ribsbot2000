@@ -22,7 +22,7 @@ var prettyQueue = function() {
 };
 module.exports = function(bot, taIDs) {
 
-  var gracehopper = function(message, cb) {
+  var ribsbot2000 = function(message, cb) {
     // the if/else if statements are for commands that don't rely
     // on the wording as much
 
@@ -36,7 +36,7 @@ module.exports = function(bot, taIDs) {
           nextMessage       = message.text.indexOf("next") > -1 && taIDs.includes(message.user),
           helpMessage       = message.text.indexOf("help") > -1,
           clearQueueMessage = message.text.indexOf("clear queue") > -1 && taIDs.includes(message.user),
-          easterEggs        = message.text.indexOf("easter eggs" || "Easter eggs") > -1,
+          commands        = message.text.indexOf("commands" || "Commands") > -1,
           goodnight         = message.text.indexOf("goodnight") > -1;
 
       if (statusMessage) {
@@ -79,8 +79,8 @@ module.exports = function(bot, taIDs) {
           });
         }
 
-      } else if (easterEggs) {
-        bot.sendMessage(message.channel, "Tag me and try these commands: `Do you like me?`, `What is your favorite thing?`, `is the (train line) train fucked?`, `Tell me about the Dom.`, `:movie_camera:`, `How awesome is (insert name of TA here)`, `heart`, `Grace are you up?`. And if you dig what I'm saying, just say `Thanks!` :smile:")
+      } else if (commands) {
+        bot.sendMessage(message.channel, "Tag me and try these commands: `Initiate!`, `Do you like me?`, `How awesome is Growth Spark?`, `Let's go to Flavor Town!` or `Take me to Flavor Town!`, `Tell us a joke`, `What's the weather in [enter city name]`. And if you dig what I'm saying, just say `Thanks!` :marioandluigi:")
       } else if (goodnight) {
         bot.sendMessage(message.channel, "Have a goodnight!")
       } else if (helpMessage) {
@@ -94,9 +94,9 @@ module.exports = function(bot, taIDs) {
       }
 
     } else if(message.type === "hello") {
-      console.log("grace hopper connected...");
+      console.log("RibsBot2000 connected...");
     }
     cb(null, 'core-bot');
   };
-  return gracehopper;
+  return ribsbot2000;
 };

@@ -1,4 +1,5 @@
 var request = require("request");
+var axios = require("axios");
 var xml2js = require('xml2js');
 
 var xmlParser = new xml2js.Parser();
@@ -26,47 +27,70 @@ module.exports = function(bot, taID) {
 	}
 
 	var quoteMachine = function(message, cb) {
-		if (validate(message) && message.text.indexOf(':movie_camera:') > -1) {
-      const options = {
-        uri: 'https://andruxnet-random-famous-quotes.p.mashape.com/cat=',
-        headers: {
-          'X-Mashape-Key': 'OivH71yd3tmshl9YKzFH7BTzBVRQp1RaKLajsnafgL2aPsfP9V',
-          Accept: 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        json: true
-      };
-			request(options, function(err, response, body) {
-        bot.sendMessage(message.channel, '"' + body.quote + '" - ' + body.author);
-      })
+		if (validate(message)) {
+		var command = paramify(message);
+		if ((command[0] === "Let's" || command[0] === "Lets" || command[0] === "let's" || command[0] === "lets" || command[0] === "take" || command[0] === "Take") && (command[1] === "go" || command[1] === "me") && command[2] === "to" && (command[3] === "Flavor" || command[3] === "flavor") && (command[4] === "Town" || command[4] === "town" || command[4] === "town!" || command[4] === "Town!")) {
+		axios.get('https://4ozc0qiiec.execute-api.us-east-1.amazonaws.com/prod/quote')
+			.then((res) => {
+				let quote = res.data.quote;
+				bot.sendMessage(message.channel, "" + quote + " - " + ":fieri:");
+			})
+			.catch((err) => {
+				console.error(err);
+			});
+			}
 		}
 		cb(null, 'quoteMachine');
 	};
 
-	var trainStatus = function(message, cb) {
+	var jokester = function(message, cb) {
 		if (validate(message)) {
-			var command = paramify(message);
-			if (command[0] === "is" && command[1] === "the" && command[3] === "train" && (command[4] === "fucked" || command[4] === "fucked?")) {
-				var trainLineQuery = command[2];
-				request("http://web.mta.info/status/serviceStatus.txt", function(err, response, body) {
-					xmlParser.parseString(body, function(err, result) {
-						var lines = result.service.subway[0].line;
-						var lineQueried = lines.filter(function(line) {
-							return line.name[0].toLowerCase().indexOf(trainLineQuery) > -1;
-						});
-						var botMessage;
-						if (lineQueried[0].status[0] === 'GOOD SERVICE') { // ? "Nope" : "Yep";
-							botMessage = Math.random() < 0.5 ? `Nope, the ${trainLineQuery} is fine` : `Nah, the ${trainLineQuery} is fine`;
-						} else {
-							botMessage = `Yep, the ${trainLineQuery} is totally fucked`;
-						}
-						bot.sendMessage(message.channel, botMessage);
-					});
-				});
+		var command = paramify(message);
+		if ((command[0] === "Tell" || command[0] === "tell") && command[1] === "us" && command[2] === "a" && (command[3] === "joke" || command[3] === "Joke")) {
+		axios.get('https://08ad1pao69.execute-api.us-east-1.amazonaws.com/dev/random_joke')
+			.then((res) => {
+				let setup = res.data.setup;
+				let punchline = res.data.punchline;
+				bot.sendMessage(message.channel, "" + setup);
+				setTimeout(function() {
+					bot.sendMessage(message.channel, "...");
+				}, 2000)
+				setTimeout(function() {
+					bot.sendMessage(message.channel, "" + punchline + " :badpundog:");
+				}, 4000)
+			})
+			.catch((err) => {
+				console.error(err);
+			});
 			}
 		}
-		cb(null, 'trainStatus');
+		cb(null, 'quoteMachine');
 	};
+
+  var weather = function(message, cb) {
+		if (validate(message)) {
+		var command = paramify(message);
+		if ((command[0] === "What's" || command[0] === "what's" || command[0] === "Whats" || command[0] === "whats") && command[1] === "the" && command[2] === "weather" && command[3] === "in") {
+		axios.get(`https://www.metaweather.com/api/location/search/?query=${command[4]}`)
+			.then((res) => {
+				console.log(res.data)
+				const woeid = res.data[0].woeid;
+				axios.get(`https://www.metaweather.com/api/location/${woeid}`)
+				.then((res) => {
+					console.log(res.data.consolidated_weather);
+					const weatherState = res.data.consolidated_weather[0].weather_state_name;
+					const temp = res.data.consolidated_weather[0].the_temp;
+					bot.sendMessage(message.channel, "Currently in " + command[4] + ", there is " + weatherState + " and the temperature is " + temp + "c. Learn how to convert from celcius, I ain't doing that shit for you!" );
+				})
+			})
+			.catch((err) => {
+				console.error(err);
+			});
+			}
+		}
+		cb(null, 'quoteMachine');
+	};
+
 
   var floorMessage = function(message, cb) {
     if (validate(message) && taID.includes(message.user)) {
@@ -108,24 +132,37 @@ module.exports = function(bot, taID) {
 
   var thanks = function(message, cb) {
     if (validate(message)) {
-      let emojis = ["bluesteel", "panda", "banana-dance", "turkey-dance", "success", "bobafett", "fieri_parrot", "lucy", "minion", "bender", "nemo", "powerup", "pug", "psy", "pundog", "woodstock", "yoga"];
+      let emojis = ["programmer", "cheers", "bananadance", "cartman", "success", "mj", "sonic", "duderino", "fieri", "giggity", "bob_ross", "metal", "badger", "dancing_lisa", "ghostbusters", "scooby", "yoshi"];
       var command = paramify(message);
       if (command[0] === "Thanks!" || command[0] === "thanks!" || command[0] === "thanks" || command[0] === "Thanks") {
-        var botMessage =  "You're very welcome :" + emojis[Math.floor(Math.random() * emojis.length)] + ":";
+        var botMessage =  "No, thank you! :" + emojis[Math.floor(Math.random() * emojis.length)] + ":";
       };
       if ((command[0] === "Thank" || command[0] === "thank") && (command[1] === "you" || command[1] === "you!")) {
-        var botMessage =  "You're very welcome :" + emojis[Math.floor(Math.random() * emojis.length)] + ":";
+        var botMessage =  "No, thank you! :" + emojis[Math.floor(Math.random() * emojis.length)] + ":";
       }
       bot.sendMessage(message.channel, botMessage);
     }
     cb(null, 'thanks');
   }
 
-	 var howAwesome = function(message, cb) {
+  var initiate = function(message, cb) {
     if (validate(message)) {
+      let emojis = ["marioandluigi", "bananadance", "goomba", "awyea", "partyparrot", "dancing_lisa", "man_dancing", "dancer", "charmander_dancing", "goth_parrot", "mj", "moonwalk", "bojack", "badger", "bob_ross", "fieri", "sonic", "megaman", "pizzaspin", "scooby", "bobba_fett", "1up", "bob", "archer", "batman"];
       var command = paramify(message);
-      if( (command[0] === 'how' || command[0] === 'How') && command[1] === 'awesome' && command[2] === 'is' && ((command[3] === 'Dominic?' || command[3] === 'dominic?') || (command[3] === 'matt?' || command[3] === 'Matt?') || (command[3] === 'Jason?' || command[3] === 'jason?') || (command[3] === 'taka?' || command[3] === 'Taka?')) )    {
-				var botMessage =  "His awesomeness is over 9,000!"
+      if (command[0] === "initiate!" || command[0] === "Initiate!" || command[0] === "initiate" || command[0] === "Initiate") {
+        var botMessage =  "Freestyle or breakdance? :" + emojis[Math.floor(Math.random() * emojis.length)] + ":";
+      };
+      bot.sendMessage(message.channel, botMessage);
+    }
+    cb(null, 'initiate');
+  }
+
+  var howAwesome = function(message, cb) {
+    if (validate(message)) {
+      let answers = ["We killin' it in 2018!", "We got Juicy J!", "We got Uncle Andy!", "We got Matty Mare-io", "We got the original Baby Back Beyeler!", "We got Jonny Sureshot!"]
+      var command = paramify(message);
+      if( (command[0] === 'how' || command[0] === 'How') && command[1] === 'awesome' && command[2] === 'is' && ((command[3] === 'Growth' || command[3] === 'growth') || (command[3] === 'Spark?' || command[3] === 'spark?')) )   {
+		var botMessage =  answers[Math.floor(Math.random() * answers.length)];
       }
       bot.sendMessage(message.channel, botMessage);
     }
@@ -135,23 +172,12 @@ module.exports = function(bot, taID) {
 	var wakeUp = function(message, cb) {
 		if (validate(message)) {
 			var command = paramify(message);
-			if ( (command[0] === "Grace" || command[0] === 'grace') && command[1] === "are" && command[2] === "you" && command[3] === "up?") {
+			if ( (command[0] === "are" || command[0] === 'Are') && (command[1] === "you" || command[1] === "You") && (command[2] === "there?" || command[2] === "There?")) {
 				var botMessage =  "Yea, yea... I'm up. What do you need?"
 			}
 			bot.sendMessage(message.channel, botMessage);
 		}
 		cb(null, 'wakeUp');
-	}
-
-	var theDom = function(message, cb) {
-		if (validate(message)) {
-			var command = paramify(message);
-			if ( (command[0] === 'Tell' || command[0] === 'tell') && command[1] === 'me' && command[2] === 'about' && command[3] === 'the' && (command[4] === 'DOM.' || command[4] === 'dom.' ) ) {
-				var botMessage =  'The Dominic Object Model is an important concept in web development!'
-			}
-			bot.sendMessage(message.channel, botMessage);
-		}
-		cb(null, 'theDom');
 	}
 
 	const virtualDom = (message, cb) => {
@@ -181,15 +207,15 @@ module.exports = function(bot, taID) {
 
 	return {
 		quoteMachine,
-		trainStatus,
-    floorMessage,
-    favoriteThings,
-    doYouLike,
-    thanks,
+		jokester,
+    	floorMessage,
+	    favoriteThings,
+	    doYouLike,
+	    thanks,
+	    initiate,
 		howAwesome,
 		wakeUp,
-		theDom,
-		virtualDom,
+		weather,
 		heart
 	};
 
